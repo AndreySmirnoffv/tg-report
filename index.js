@@ -3,7 +3,9 @@ const TelegramBot = require("node-telegram-bot-api");
 const bot = new TelegramBot(process.env.devStatus ? process.env.TEST_TOKEN : process.env.DEFAULT_TOKEN, { polling: true });
 const fs = require("fs");
 const jsonFilePath = "userRecords.json";
-const commands = JSON.parse(fs.readFileSync("./assets/commands/commands.json", 'utf-8'))
+const commands = JSON.parse(
+  fs.readFileSync("./assets/commands/commands.json", "utf-8")
+);
 let userRecords = [];
 let usersAwaitingUsername = {};
 
@@ -13,10 +15,9 @@ try {
   console.error("Ошибка чтения JSON-файла:", err);
 }
 
+bot.setMyCommands(commands);
 
-bot.setMyCommands(commands)
-
-bot.on("message", async msg => {
+bot.on("message", async (msg) => {
   try {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
@@ -30,7 +31,6 @@ bot.on("message", async msg => {
         usersAwaitingUsername[userId].stage = "description";
 
         await bot.sendMessage(chatId, "Теперь пришлите мне описание.");
-
       } else if (stage === "description") {
         usersAwaitingUsername[userId].description = userMessage;
         usersAwaitingUsername[userId].stage = "photo";
@@ -39,7 +39,6 @@ bot.on("message", async msg => {
           chatId,
           `Теперь пришлите мне фото вместе с вашим описанием: ${userMessage}`
         );
-
       } else if (stage === "photo") {
         const photoFileId = msg.photo[0].file_id;
 
@@ -55,56 +54,59 @@ bot.on("message", async msg => {
         fs.writeFileSync(jsonFilePath, JSON.stringify(userRecords, null, "\t"));
         console.log("Данные успешно записаны в JSON-файл");
 
-        await bot.sendMessage(
-          chatId,
-          "Спасибо! Мы рассмотрим ваш запрос."
-        );
+        await bot.sendMessage(chatId, "Спасибо! Мы рассмотрим ваш запрос.");
       }
     } else {
-      const user = userRecords.find(x => x.username === userMessage);
+      const user = userRecords.find((x) => x.username === userMessage);
 
       if (user) {
         await bot.sendMessage(chatId, "Этот пользователь уже добавлен");
-      } else if (userMessage === '/start') {
+      } else if (userMessage === "/start") {
         usersAwaitingUsername[userId] = { stage: "username" };
-        await bot.sendMessage(chatId, "Пожалуйста, пришлите мне ваше имя пользователя.");
+        await bot.sendMessage(
+          chatId,
+          "Пожалуйста, пришлите мне ваше имя пользователя."
+        );
       }
     }
   } catch (error) {
-    console.error('Ошибка в обработчике сообщений:', error);
+    console.error("Ошибка в обработчике сообщений:", error);
   }
 });
 
-bot.on("photo", async msg => {
+bot.on("photo", async (msg) => {
   try {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
     const photoFileId = msg.photo[0].file_id;
-    const channelUsername = "@testkworkkk"
-    const userRecord = userRecords.find(record => record.user_id === userId);
+    const channelUsername = "@testkworkkk";
+    const userRecord = userRecords.find((record) => record.user_id === userId);
 
     if (userRecord) {
       userRecord.photo = photoFileId;
 
       fs.writeFileSync(jsonFilePath, JSON.stringify(userRecords, null, "\t"));
-      
+
       await bot.sendPhoto(channelUsername, photoFileId, {
         caption: `User ID: ${userRecord.user_id}\nUsername: ${userRecord.username}`,
         reply_markup: {
           inline_keyboard: [
-            [{ text: "Принять", callback_data: "accept" }, { text: "Отклонить", callback_data: "decline" }]
+            [
+              { text: "Принять", callback_data: "accept" },
+              { text: "Отклонить", callback_data: "decline" },
+            ],
           ],
         },
       });
-      
+
       await bot.sendMessage(chatId, "Спасибо! Мы рассмотрим ваш запрос.");
     }
   } catch (error) {
-    console.error('Ошибка в обработчике фото:', error);
+    console.error("Ошибка в обработчике фото:", error);
   }
 });
 
-bot.on("callback_query", async msg => {
+bot.on("callback_query", async (msg) => {
   try {
     if (msg.data === "accept") {
       await bot.sendMessage("channelId", "текст");
@@ -112,8 +114,8 @@ bot.on("callback_query", async msg => {
       await bot.sendMessage(msg.chat.id, "некоторый текст");
     }
   } catch (error) {
-    console.error('Ошибка в обработчике callback_query:', error);
+    console.error("Ошибка в обработчике callback_query:", error);
   }
 });
 
-bot.on("polling_error", console.log)
+bot.on("polling_error", console.log);
