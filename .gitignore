@@ -1,0 +1,11 @@
+node_modules/
+
+# Игнорировать файл .env
+.env
+nodemon.json
+
+
+
+
+
+
