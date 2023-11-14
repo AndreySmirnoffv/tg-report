@@ -1,11 +1,11 @@
 require("dotenv").config({ path: "./assets/modules/.env" });
 const TelegramBot = require("node-telegram-bot-api");
+const bot = new TelegramBot(process.env.devStatus ? process.env.TEST_TOKEN : process.env.DEFAULT_TOKEN, { polling: true });
 const fs = require("fs");
 const jsonFilePath = "userRecords.json";
 const commands = JSON.parse(fs.readFileSync("./assets/commands/commands.json", 'utf-8'))
 let userRecords = [];
 let usersAwaitingUsername = {};
-
 
 try {
   userRecords = JSON.parse(fs.readFileSync(jsonFilePath, "utf-8"));
@@ -13,14 +13,10 @@ try {
   console.error("Ошибка чтения JSON-файла:", err);
 }
 
-const bot = new TelegramBot(
-  process.env.devStatus ? process.env.TEST_TOKEN : process.env.DEFAULT_TOKEN,
-  { polling: true }
-);
 
 bot.setMyCommands(commands)
 
-bot.on("message", async (msg) => {
+bot.on("message", async msg => {
   try {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
@@ -65,7 +61,7 @@ bot.on("message", async (msg) => {
         );
       }
     } else {
-      const user = userRecords.find((x) => x.username === userMessage);
+      const user = userRecords.find(x => x.username === userMessage);
 
       if (user) {
         await bot.sendMessage(chatId, "Этот пользователь уже добавлен");
@@ -79,13 +75,13 @@ bot.on("message", async (msg) => {
   }
 });
 
-bot.on("photo", async (msg) => {
+bot.on("photo", async msg => {
   try {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
     const photoFileId = msg.photo[0].file_id;
     const channelUsername = "@testkworkkk"
-    const userRecord = userRecords.find((record) => record.user_id === userId);
+    const userRecord = userRecords.find(record => record.user_id === userId);
 
     if (userRecord) {
       userRecord.photo = photoFileId;
@@ -108,7 +104,7 @@ bot.on("photo", async (msg) => {
   }
 });
 
-bot.on("callback_query", async (msg) => {
+bot.on("callback_query", async msg => {
   try {
     if (msg.data === "accept") {
       await bot.sendMessage("channelId", "текст");
