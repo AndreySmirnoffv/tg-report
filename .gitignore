@@ -1,6 +1,4 @@
 node_modules/
-
-# Игнорировать файл .env
 assets/modules/.env
 nodemon.json
 
